@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 # Use /hello-world URL
 def hello_world(request):
     """Return a 'Hello World' string using HttpResponse"""
-    pass
+    return HttpResponse('Hello World')
 
 
 # Use /date URL
@@ -17,7 +17,9 @@ def current_date(request):
 
         i.e: 'Today is 5, January 2018'
     """
-    pass
+    return HttpResponse('Today is {}'.format(datetime.now().strftime(
+        '%A, %B %d, %Y')
+        ))
 
 
 # Use URL with format /my-age/<year>/<month>/<day>
@@ -28,7 +30,11 @@ def my_age(request, year, month, day):
 
         i.e: /my-age/1992/1/20 returns 'Your age is 26 years old'
     """
-    pass
+
+    user_age = datetime(int(year), int(month), int(day))
+    _td = datetime.now() - user_age
+    age = int(_td.days / 365.25)
+    return HttpResponse('You are {} years old.'.format(age))
 
 
 # Use URL with format /next-birthday/<birthday>
@@ -38,7 +44,27 @@ def next_birthday(request, birthday):
         based on a given string GET parameter that comes in the URL, with the
         format 'YYYY-MM-DD'
     """
-    pass
+    _user_bday = datetime.strptime(birthday, '%Y-%m-%d')
+    today = datetime.now()
+    
+    user_bday_this_yr = datetime(today.year, _user_bday.month, _user_bday.day)
+    user_bday_nxt_yr = datetime(today.year + 1, _user_bday.month, _user_bday.day)
+    
+    if user_bday_this_yr.year == today.year and user_bday_this_yr.month == \
+    today.month and user_bday_this_yr.day == today.day:
+        return HttpResponse('Happy birthday!')
+    
+    if user_bday_this_yr.month > today.month:
+        td = user_bday_this_yr - today
+    elif user_bday_this_yr.month < today.month:
+        td = user_bday_nxt_yr - today
+    elif user_bday_this_yr.month == today.month:
+        if user_bday_this_yr.day >= today.day:
+            td = user_bday_this_yr - today
+        elif user_bday_this_yr.day < today.day:
+            td = user_bday_nxt_yr - today
+            
+    return HttpResponse('Days until next birthday: {}'.format(td.days))
 
 
 # Use /profile URL
@@ -47,7 +73,9 @@ def profile(request):
         This view should render the template 'profile.html'. Make sure you return
         the correct context to make it work.
     """
-    pass
+    context = {'my_name': 'Dylan', 'my_age': 25}
+    
+    return render(request, 'profile.html', context=context)
 
 
 
@@ -83,8 +111,8 @@ AUTHORS_INFO = {
 
 # Use provided URLs, don't change them
 def authors(request):
-    pass
+    return render(request, 'authors.html', context=AUTHORS_INFO)
 
 
 def author(request, authors_last_name):
-    pass
+    return render(request,'author.html',context=AUTHORS_INFO[authors_last_name])
